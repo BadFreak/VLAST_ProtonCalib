@@ -4,7 +4,7 @@ inputDir=$workDir"/MC"
 outputDir=$workDir"/result"
 mkdir -p $outputDir
 
-option=east # east or west
+option=west # east or west
 inputFile=$inputDir/${option}.root
 outputFile=$outputDir/ProtonCalib_${option}.root
 echo "======= inputDir: $inputFile"

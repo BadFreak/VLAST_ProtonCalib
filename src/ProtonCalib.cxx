@@ -115,9 +115,9 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
 		bool is_acd_not = (acd_e_0 < 0.6) || (acd_e_1 < 0.6);
 		float max_conv_e = !vecFBranches["conv_e"]->empty() ? *std::max_element(vecFBranches["conv_e"]->begin(), vecFBranches["conv_e"]->end()) : 0.0f;
 		float max_ecal_celle = !vecFBranches["ecal_celle"]->empty() ? *std::max_element(vecFBranches["ecal_celle"]->begin(), vecFBranches["ecal_celle"]->end()) : 0.0f;
-		// if (is_acd_not) continue; 
-		if (is_acd_not || max_conv_e < 2.52 || max_ecal_celle < 0.6) continue;		
-		eventSelection4++;
+
+		if (is_acd_not || max_conv_e < 2.52 || max_ecal_celle < 36) continue;		
+		eventSelection1++;
 		
 		// jiaxuan selection 2:
 		int totalECALHit = vecIBranches["ecal_cellid"]->size();
@@ -127,11 +127,11 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
 		// jiaxuan selection 3:
 		float momentum = floatBranches["init_Px"] * floatBranches["init_Px"] + floatBranches["init_Py"] * floatBranches["init_Py"] + floatBranches["init_Pz"] * floatBranches["init_Pz"];
 		float norm_z = floatBranches["init_Pz"] / sqrt(momentum);
-		if (norm_z < 0.9578) continue; // 20/sqrt(6^2+20^2)
+		if (norm_z < 0.9206) continue; // 20/sqrt(2*6^2+20^2)
 		eventSelection3++;
 
-		// jiaxuan selection 4: incident energy restriction
-		float init_e = floatBranches["init_E"];
+		// jiaxuan selection 4: incident particle energy restriction
+		// float init_e = floatBranches["init_E"];
 		// if (init_e > 45000 || init_e < 35000) continue;
 		// eventSelection4++;
 
