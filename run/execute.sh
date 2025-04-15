@@ -1,8 +1,10 @@
 #!/bin/bash
+
 workDir="/mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib"
 inputDir=$workDir"/MC"
 outputDir=$workDir"/result"
 mkdir -p $outputDir
+#source $workDir"/run/pcm.sh"
 
 option=west # east or west
 inputFile=$inputDir/${option}.root

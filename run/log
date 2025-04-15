@@ -1,0 +1,8 @@
+======= inputDir: /mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib/MC/ooc_ecal_filter.root
+======= Starting : VLAST ProtonCalib ======= 
+Reading branches from vtree: vtree
+======== Starting : Proton MIP Stat
+Total entries: 10000000
+Processing entry 0
+Processing entry 1000000
+Processing entry 2000000

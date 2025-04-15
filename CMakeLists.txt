@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIRS})
 
+include_directories($ENV{GENFIT_DIR}/include)
+link_directories($ENV{GENFIT_DIR}/lib64)
+
 # 头文件目录
 include_directories(include)
 
@@ -19,4 +22,4 @@ set(SRC_FILES src/main.cxx src/ProtonCalib.cxx)
 add_executable(VLAST_ProtonCalib ${SRC_FILES})
 
 # 链接 ROOT 库
-target_link_libraries(VLAST_ProtonCalib ${ROOT_LIBRARIES})
+target_link_libraries(VLAST_ProtonCalib genfit2 ${ROOT_LIBRARIES})
