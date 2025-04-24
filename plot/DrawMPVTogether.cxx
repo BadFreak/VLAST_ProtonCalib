@@ -6,12 +6,13 @@ void DrawMPVTogether() {
     //                                           "ProtonCalib_ooc_ecal_filter_restriction123.root"),
     //                               TFile::Open("/mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib/result/"
     //                                           "ProtonCalib_ooc_ecal_filter_restriction124.root")};
-    std::vector<TFile *> files = {TFile::Open("/mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib/result/"
-                                              "ProtonCalib_ooc_ecal_filter_restriction12.root"),
-                                  TFile::Open("/mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib/result/"
-                                              "ProtonCalib_east.root"),
-                                  TFile::Open("/mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib/result/"
-                                              "ProtonCalib_west.root")};
+    std::vector<TFile *> files = {
+        TFile::Open("/mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib/result/"
+                    "ProtonCalib_ooc_ecal_filter_restriction12.root"),
+        TFile::Open("/mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib/result/"
+                    "ProtonCalib_ooc_ecal_filter_restriction123.root"),
+        TFile::Open("/mnt2/USTC/jxwang/VLAST-P/VLAST_ProtonCalib/result/"
+                    "ProtonCalib_ooc_ecal_filter_helium_restriction123.root")};
 
     double mu[3][25] = {0};
     for (size_t fidx = 0; fidx < files.size(); ++fidx) {

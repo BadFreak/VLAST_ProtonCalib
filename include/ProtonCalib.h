@@ -2,11 +2,13 @@
 #define _PROTONCALIB_H_
 
 #include <TFile.h>
+#include <TGraph.h>
 #include <TH1F.h>
 #include <TH1I.h>
 #include <TMath.h>
 #include <TTree.h>
 #include <TVector3.h>
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -46,11 +48,22 @@ class ProtonCalib {
     bool IsLessHit(int hitStd, int hit);
     TVector3 TrackGenFit(TVector3 pos, TVector3 mom, std::vector<TVector3> &trackPos);
     void FitTH1F(TH1F *&h, TF1 *&f);
+    TVector3 FindHitPoint(TVector3 pos, TVector3 mom, double zpos);
+    bool IsInDetectorSur(TVector3 vec3);
+    // track find and back incident
+    double PointLineDistance(const TVector3 &point, const TVector3 &line_point,
+                             const TVector3 &line_dir);
+    double CalculChi2(std::vector<TVector3> tempTrackPos);
+    bool TrackFind(std::vector<TVector3> &trackPos);
+    bool intersectBox(const TVector3 &rayOrigin, const TVector3 &rayDirInv, const TVector3 &boxMin,
+                      const TVector3 &boxMax, double &tmin, double &tmax);
+    void RayTraceCrystals(TVector3 pos, TVector3 mom);
 
   private:
     TFile *inFile;
     TFile *outFile;
     TTree *inTree;
+
     // 存储不同类型的变量
     std::map<std::string, float> floatBranches;               // 单值 float 类型分支
     std::map<std::string, int> intBranches;                   // 单值 int 类型分支
@@ -58,12 +71,17 @@ class ProtonCalib {
     std::map<std::string, std::vector<float> *> vecFBranches; // vector<float> 类型分支
 
     std::vector<TVector3> hitPos;
-    std::vector<float> hitW;
+    std::vector<std::tuple<int, int, double>> intersectResults;
 
     TH1F *hProtonSig[nCry];
     TH1F *hECALE;
+    TH1I *hTrackerHit;
     TH1I *hProtonHit;
+    TH1F *hAngle;
     TF1 *fProtonSig[nCry];
+
+    TGraph *grFrontSur;
+    TGraph *grBackSur;
 };
 
 #endif // _PROTONCALIB_H_
