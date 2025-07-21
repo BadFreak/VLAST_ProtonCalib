@@ -25,13 +25,19 @@
 #include <TTree.h>
 #include <TVector3.h>
 #include <algorithm>
+// #include <genfit/Exception.h>
 #include <iostream>
 #include <string>
 
 #include <tuple>
 
+bool ProtonCalib::isHeliumFile = false;
 void ProtonCalib::ReadTreeAndSetBranches(std::string filename) {
     // 打开 ROOT 文件
+    if (filename.find("helium") != std::string::npos) {
+        isHeliumFile = true;
+    }
+    std::cout << "is helium file :" << isHeliumFile << "   ";
     inFile = TFile::Open(TString(filename), "READ");
     if (!inFile || inFile->IsZombie()) {
         std::cerr << "Error: Cannot open file: " << filename << std::endl;
@@ -82,14 +88,23 @@ void ProtonCalib::ReadTreeAndSetBranches(std::string filename) {
         }
     }
     for (int i = 0; i < nCry; i++) {
-        hProtonSig[i] =
-            new TH1F(Form("hProtonSig_CellID_%d", i), Form("hProtonSig_CellID_%d", i), 150, 0, 300);
-        fProtonSig[i] = new TF1(Form("fProtonSig_CellID_%d", i), LandauConvGausFunc, 80, 150, 4);
+        if (isHeliumFile) {
+            hProtonSig[i] = new TH1F(Form("hProtonSig_CellID_%d", i),
+                                     Form("hProtonSig_CellID_%d", i), 400, 0, 1000);
+            fProtonSig[i] =
+                new TF1(Form("fProtonSig_CellID_%d", i), LandauConvGausFunc, 380, 700, 4);
+        } else {
+            hProtonSig[i] = new TH1F(Form("hProtonSig_CellID_%d", i),
+                                     Form("hProtonSig_CellID_%d", i), 150, 0, 300);
+            fProtonSig[i] =
+                new TF1(Form("fProtonSig_CellID_%d", i), LandauConvGausFunc, 80, 300, 4);
+        }
     }
     hAngle = new TH1F("hAngle", "hAngle", 60, -1, 14);
     hECALE = new TH1F("hECALE", "hECALE", 400, 0, 800);
     hProtonHit = new TH1I("hProtonHit", "hProtonHit", 25, 0, 25);
     hTrackerHit = new TH1I("hTrackerHit", "hTrackerHit", 15, 0, 15);
+    hFitMPV = new TH1F("hFitMPV", "hFitMPV", 500, 50, 550);
     grFrontSur = new TGraph();
     grBackSur = new TGraph();
 }
@@ -98,16 +113,40 @@ void ProtonCalib::FitTH1F(TH1F *&h, TF1 *&f) {
     double landauMPV = h->GetBinCenter(h->GetMaximumBin());
     double landauWidth = h->GetRMS() / sqrt(2);
     double gausSigma = h->GetRMS() / sqrt(2);
-    f->SetParameters(3, 120, 3000, 8);
-    f->SetParLimits(0, 0.5, 5);
-    f->SetParLimits(1, 110, 130);
-    f->SetParLimits(3, 0, 15);
-    h->Fit(f, "QR", "", 80, 300);
-    // landauMPV = f->GetParameter(1);
+    if (isHeliumFile) {
+        f->SetParameters(3, 450, 3000, 8);
+        f->SetParLimits(0, 2, 30);
+        f->SetParLimits(1, 420, 480);
+        f->SetParLimits(3, 0, 40);
+        h->Fit(f, "QR", "", 380, 700);
+    } else {
+        f->SetParameters(3, 120, 3000, 8);
+        f->SetParLimits(0, 0.5, 5);
+        f->SetParLimits(1, 110, 130);
+        f->SetParLimits(3, 0, 15);
+        h->Fit(f, "QR", "", 80, 300);
+    } // landauMPV = f->GetParameter(1);
     // landauWidth = f->GetParameter(0);
     // gausSigma = f->GetParameter(3);
     // f->SetParameters(landauWidth, 120, 10000, gausSigma);
     // h->Fit(f, "R", "", 50, 300);
+}
+
+void ProtonCalib::SetHistStyle(TH1F *&h, TF1 *&f) {
+    h->GetListOfFunctions()->Add(f);
+    h->GetXaxis()->SetTitle("E_{cell} [MeV]");
+    h->GetYaxis()->SetTitle("Entries");
+    if (isHeliumFile) {
+        h->GetXaxis()->SetRangeUser(100, 800);
+    } else {
+        h->GetXaxis()->SetRangeUser(30, 300);
+    }
+    // h->GetYaxis()->SetRangeUser(10, 10000);
+    h->GetXaxis()->SetLabelSize(0.045);
+    h->GetYaxis()->SetLabelSize(0.045);
+    h->GetXaxis()->SetTitleSize(0.045);
+    h->GetYaxis()->SetTitleSize(0.045);
+    h->Draw();
 }
 
 double ProtonCalib::PointLineDistance(const TVector3 &point, const TVector3 &line_point,
@@ -138,6 +177,9 @@ bool ProtonCalib::TrackFind(std::vector<TVector3> &trackPos) {
     std::vector<std::vector<TVector3>> layerTrackPos(3);
     double nowZpos = trackPos[0].Z();
     int nowLayer = 0;
+    std::sort(trackPos.begin(), trackPos.end(),
+              [](const TVector3 &a, const TVector3 &b) { return a.Z() < b.Z(); });
+
     for (int i = 0; i < trackPos.size(); i++) {
         if (trackPos[i].Z() > nowZpos) {
             nowLayer++;
@@ -169,7 +211,14 @@ bool ProtonCalib::TrackFind(std::vector<TVector3> &trackPos) {
 }
 
 TVector3 ProtonCalib::TrackGenFit(TVector3 pos, TVector3 mom, std::vector<TVector3> &trackPos) {
+    // TVector3 hitDirectionUnit = (trackPos[2] - trackPos[0]).Unit();
+    // TVector3 momUnit = mom.Unit();
+    // hTest->Fill(hitDirectionUnit.Dot(momUnit));
+    // if (hitDirectionUnit.Dot(momUnit) < 0.5) {
+    //     return TVector3(-999, -999, -999);
+    // }
     using namespace genfit;
+    // std::cout << "Init momentum: " << mom.X() << " " << mom.Y() << " " << mom.Z() << std::endl;
     genfit::MaterialEffects::getInstance()->setNoEffects();
     genfit::AbsBField *field = new genfit::ConstField(0., 0., 0.); // 1 Tesla 沿 Z 轴
     genfit::FieldManager::getInstance()->init(field); // GenFit 会接管 field 的内存管理
@@ -180,7 +229,10 @@ TVector3 ProtonCalib::TrackGenFit(TVector3 pos, TVector3 mom, std::vector<TVecto
     int planeId(0);     // detector plane ID
     int hitId(0);       // hit ID
 
+    // 遍历 trackPos 中的每个点
     for (size_t i = 0; i < trackPos.size(); ++i) {
+        // std::cout << "TrackPos: " << trackPos[i].X() << " " << trackPos[i].Y() << " "
+        // << trackPos[i].Z() << std::endl;
         TVector3 mpos3D = trackPos[i];
         TVector3 u(1, 0, 0); // x方向
         TVector3 v(0, 1, 0); // y方向
@@ -198,19 +250,19 @@ TVector3 ProtonCalib::TrackGenFit(TVector3 pos, TVector3 mom, std::vector<TVecto
             ++planeId); // 平面ID(自动递增));
         track->insertPoint(new genfit::TrackPoint(meas, track));
     }
+
     KalmanFitter *fitter = new KalmanFitter();
     try {
         fitter->processTrack(track);
-    } catch (const std::exception &e) {
-        std::cerr << "Fit failed: " << e.what() << std::endl;
+    } catch (genfit::Exception &e) {
+        std::cerr << "[WARNING] Caught unknown exception during fitting. Skipping this track."
+                  << std::endl;
         return TVector3(-999, -999, -999);
     }
     // track->getFittedState().Print();
     TVector3 fitMom = track->getFittedState().getMom();
-    // std::cout << "Init momentum: " << mom << std::endl;
-    // std::cout << "Fitted momentum: " << fitMom << std::endl;
-    // std::cout << "======== Finished " << std::endl;
-
+    // std::cout << "Fitted momentum: " << fitMom.X() << " " << fitMom.Y() << " " << fitMom.Z()
+    // << std::endl;
     delete fitter; // 释放内存
     return fitMom;
 }
@@ -281,11 +333,11 @@ void ProtonCalib::RayTraceCrystals(TVector3 pos, TVector3 mom) {
     //     std::cout << "Crystal (" << ix << ", " << iy << ") - Path Length: " << len << " mm\n";
     // }
 }
-
 void ProtonCalib::ProtonMIPStat(std::string filename) {
     std::cout << "======== Starting : Proton MIP Stat" << std::endl;
     int totalEntries = inTree->GetEntries();
     std::cout << "Total entries: " << totalEntries << std::endl;
+    hTest = new TH1F("hAngleDiff", "hAngleDiff", 100, -1, 1);
 
     int eventSelection1 = 0;
     int eventSelection2 = 0;
@@ -293,7 +345,7 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
     int eventSelection4 = 0;
     int eventSelection5 = 0;
     for (int i = 0; i < totalEntries; i++) {
-        // for (int i = 0; i < 10000; i++) {
+        // for (int i = 0; i < 1000000; i++) {
         if (i % 1000000 == 0) {
             std::cout << "Processing entry " << i << std::endl;
         }
@@ -317,7 +369,7 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
         if (is_acd_not || max_conv_e < 2.52 || max_ecal_celle < 36) continue;
         eventSelection1++;
 
-        // jiaxuan selection 2: ECAL hitNo cut > 0 && <= 1
+        // jiaxuan selection 2: ECAL hitNo cut > 0 && <= xx
         int totalECALHit = vecIBranches["ecal_cellid"]->size();
         TVector3 position(floatBranches["init_x"], floatBranches["init_y"],
                           floatBranches["init_z"]);
@@ -333,14 +385,14 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
         // } else {
         //     continue;
         // }
-        if (!IsLessHit(3, totalECALHit)) continue;
+        if (!IsLessHit(5, totalECALHit)) continue;
         RayTraceCrystals(position, momentum);
         eventSelection2++;
 
         // jiaxuan selection 3a(truth level): incident particle direction
         // float momentumValue = momentum.Mag();
         // float norm_z = floatBranches["init_Pz"] / momentumValue;
-        // if (norm_z < 0.9206) continue; // 20/sqrt(2*6^2+20^2)
+        // if (norm_z < 0.7624) continue; // 20/sqrt(2*6^2+20^2)
         // eventSelection3++;
 
         // jiaxuan selection 3b: Track find and fit
@@ -380,7 +432,7 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
         for (int j = 0; j < totalECALHit; j++) {
             int cellid = vecIBranches["ecal_cellid"]->at(j);
             float celle = vecFBranches["ecal_celle"]->at(j);
-            if (PLCor[cellid] < 10) {
+            if (PLCor[cellid] < 3.) { // short distance abandoned
                 hProtonSig[cellid]->Fill(celle * PLCor[cellid]);
             }
             totalECALE += celle;
@@ -403,16 +455,8 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
         cProtonSig->cd(GetPadID(i));
         // gPad->SetLogy();
         FitTH1F(hProtonSig[i], fProtonSig[i]);
-        hProtonSig[i]->GetListOfFunctions()->Add(fProtonSig[i]);
-        hProtonSig[i]->GetXaxis()->SetTitle("E_{cell} [MeV]");
-        hProtonSig[i]->GetYaxis()->SetTitle("Entries");
-        hProtonSig[i]->GetXaxis()->SetRangeUser(30, 300);
-        // hProtonSig[i]->GetYaxis()->SetRangeUser(10, 10000);
-        hProtonSig[i]->GetXaxis()->SetLabelSize(0.045);
-        hProtonSig[i]->GetYaxis()->SetLabelSize(0.045);
-        hProtonSig[i]->GetXaxis()->SetTitleSize(0.045);
-        hProtonSig[i]->GetYaxis()->SetTitleSize(0.045);
-        hProtonSig[i]->Draw();
+        hFitMPV->Fill(fProtonSig[i]->GetParameter(1));
+        SetHistStyle(hProtonSig[i], fProtonSig[i]);
         fProtonSig[i]->Draw("same");
     }
 
@@ -425,10 +469,33 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
         hProtonSig[i]->Write();
     }
     outFile->cd();
+    hAngle->GetXaxis()->SetTitle("Angle [deg]");
+    hAngle->GetYaxis()->SetTitle("Count");
+    hAngle->GetXaxis()->SetTitleSize(0.045);
+    hAngle->GetYaxis()->SetTitleSize(0.045);
+    hAngle->GetXaxis()->SetLabelSize(0.045);
+    hAngle->GetYaxis()->SetLabelSize(0.045);
+    hAngle->GetYaxis()->SetRangeUser(500, 1000000);
     hAngle->Write();
     hECALE->Write();
+    hFitMPV->Write();
+    hTrackerHit->GetXaxis()->SetTitle("Tracker Hit Number");
+    hTrackerHit->GetYaxis()->SetTitle("Count");
+    hTrackerHit->GetXaxis()->SetTitleSize(0.045);
+    hTrackerHit->GetYaxis()->SetTitleSize(0.045);
+    hTrackerHit->GetXaxis()->SetLabelSize(0.045);
+    hTrackerHit->GetYaxis()->SetLabelSize(0.045);
+    hTrackerHit->GetYaxis()->SetRangeUser(500, 1000000);
     hTrackerHit->Write();
+    hProtonHit->GetXaxis()->SetTitle("ECAL Hit Number");
+    hProtonHit->GetYaxis()->SetTitle("Count");
+    hProtonHit->GetXaxis()->SetTitleSize(0.045);
+    hProtonHit->GetYaxis()->SetTitleSize(0.045);
+    hProtonHit->GetXaxis()->SetLabelSize(0.045);
+    hProtonHit->GetYaxis()->SetLabelSize(0.045);
+    hProtonHit->GetYaxis()->SetRangeUser(500, 500000);
     hProtonHit->Write();
+    hTest->Write();
     grFrontSur->SetName("FrontSurHitProfile");
     grBackSur->SetName("BackSurHitProfile");
     grFrontSur->Write();

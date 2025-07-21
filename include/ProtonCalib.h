@@ -48,6 +48,7 @@ class ProtonCalib {
     bool IsLessHit(int hitStd, int hit);
     TVector3 TrackGenFit(TVector3 pos, TVector3 mom, std::vector<TVector3> &trackPos);
     void FitTH1F(TH1F *&h, TF1 *&f);
+    void SetHistStyle(TH1F *&h, TF1 *&f);
     TVector3 FindHitPoint(TVector3 pos, TVector3 mom, double zpos);
     bool IsInDetectorSur(TVector3 vec3);
     // track find and back incident
@@ -65,23 +66,29 @@ class ProtonCalib {
     TTree *inTree;
 
     // 存储不同类型的变量
-    std::map<std::string, float> floatBranches;               // 单值 float 类型分支
+    std::map<std::string, float> floatBranches;               // 单值 float 类型分支s
     std::map<std::string, int> intBranches;                   // 单值 int 类型分支
     std::map<std::string, std::vector<int> *> vecIBranches;   // vector<int> 类型分支
     std::map<std::string, std::vector<float> *> vecFBranches; // vector<float> 类型分支
 
     std::vector<TVector3> hitPos;
     std::vector<std::tuple<int, int, double>> intersectResults;
-
+    TH1F *hProtonSig0[nCry];
+    TH1F *hProtonSig1[nCry];
+    TH1F *hProtonSig2[nCry];
+    TH1F *hProtonSig3[nCry];
     TH1F *hProtonSig[nCry];
     TH1F *hECALE;
     TH1I *hTrackerHit;
     TH1I *hProtonHit;
     TH1F *hAngle;
     TF1 *fProtonSig[nCry];
+    TH1F *hFitMPV;
 
     TGraph *grFrontSur;
     TGraph *grBackSur;
+    TH1F *hTest;
+    static bool isHeliumFile;
 };
 
 #endif // _PROTONCALIB_H_
