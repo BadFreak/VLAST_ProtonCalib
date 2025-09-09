@@ -390,36 +390,36 @@ void ProtonCalib::ProtonMIPStat(std::string filename) {
         eventSelection2++;
 
         // jiaxuan selection 3a(truth level): incident particle direction
-        // float momentumValue = momentum.Mag();
-        // float norm_z = floatBranches["init_Pz"] / momentumValue;
-        // if (norm_z < 0.7624) continue; // 20/sqrt(2*6^2+20^2)
-        // eventSelection3++;
+        float momentumValue = momentum.Mag();
+        float norm_z = floatBranches["init_Pz"] / momentumValue;
+        if (norm_z < 0.7624) continue; // 20/sqrt(2*6^2+20^2)
+        eventSelection3++;
 
         // jiaxuan selection 3b: Track find and fit
-        int trackPoint = vecFBranches["tracker_hitx"]->size();
-        if (trackPoint != vecFBranches["tracker_hity"]->size() ||
-            trackPoint != vecFBranches["tracker_hitz"]->size() || trackPoint == 0) {
-            continue;
-        }
-        hTrackerHit->Fill(trackPoint);
-        if (hitPos.size() != 0) hitPos.clear();
-        for (int i_track_hit = 0; i_track_hit < trackPoint; i_track_hit++) {
-            float posx = vecFBranches["tracker_hitx"]->at(i_track_hit);
-            float posy = vecFBranches["tracker_hity"]->at(i_track_hit);
-            float posz = vecFBranches["tracker_hitz"]->at(i_track_hit);
-            TVector3 vecPos(posx, posy, posz);
-            hitPos.push_back(vecPos);
-        }
-        if (TrackFind(hitPos)) {
-            // if (1) {
-            TVector3 nowMom(TrackGenFit(position, momentum, hitPos));
-            double angle = 180 / TMath::Pi() * nowMom.Angle(momentum);
-            hAngle->Fill(angle);
-            if (nowMom.Z() / nowMom.Mag() < 0.7624) continue;
-            eventSelection3++;
-        } else {
-            continue;
-        }
+        // int trackPoint = vecFBranches["tracker_hitx"]->size();
+        // if (trackPoint != vecFBranches["tracker_hity"]->size() ||
+        //     trackPoint != vecFBranches["tracker_hitz"]->size() || trackPoint == 0) {
+        //     continue;
+        // }
+        // hTrackerHit->Fill(trackPoint);
+        // if (hitPos.size() != 0) hitPos.clear();
+        // for (int i_track_hit = 0; i_track_hit < trackPoint; i_track_hit++) {
+        //     float posx = vecFBranches["tracker_hitx"]->at(i_track_hit);
+        //     float posy = vecFBranches["tracker_hity"]->at(i_track_hit);
+        //     float posz = vecFBranches["tracker_hitz"]->at(i_track_hit);
+        //     TVector3 vecPos(posx, posy, posz);
+        //     hitPos.push_back(vecPos);
+        // }
+        // if (TrackFind(hitPos)) {
+        //     // if (1) {
+        //     TVector3 nowMom(TrackGenFit(position, momentum, hitPos));
+        //     double angle = 180 / TMath::Pi() * nowMom.Angle(momentum);
+        //     hAngle->Fill(angle);
+        //     if (nowMom.Z() / nowMom.Mag() < 0.7624) continue;
+        //     eventSelection3++;
+        // } else {
+        //     continue;
+        // }
 
         // jiaxuan selection 4 : ECAL energy restriction
         double PL[25] = {0.};

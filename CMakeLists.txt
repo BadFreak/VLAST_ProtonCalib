@@ -9,8 +9,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIRS})
 
-include_directories($ENV{GENFIT_DIR}/include)
-link_directories($ENV{GENFIT_DIR}/lib64)
+set(GENFIT_DIR "/mnt2/USTC/jxwang/Prefix/GenFit")
+
+include_directories(${GENFIT_DIR}/include)
+link_directories(${GENFIT_DIR}/lib64)
 
 # 头文件目录
 include_directories(include)

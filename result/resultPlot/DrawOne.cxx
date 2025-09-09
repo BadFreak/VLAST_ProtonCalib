@@ -11,7 +11,7 @@ void DrawOne() {
     gStyle->SetOptStat(0);
     gStyle->SetOptFit(1111);
 
-    std::string filename = "../ProtonCalib_ooc_ecal_filter_5hits_trackfindfit_lengthcor.root";
+    std::string filename = "../ProtonCalib_ooc_sphere_secondary_proton.root";
     const std::string histPath = "ProtonMIPStat/hProtonSig_CellID_12";
     if (filename.find("helium") != std::string::npos) {
         isHeliumFile = true;
@@ -81,6 +81,6 @@ void DrawOne() {
     if (isHeliumFile) {
         c1->Print("Cell_12_helium.png");
     } else {
-        c1->Print("Cell_12_proton.png");
+        c1->Print("Cell_12_secondary_proton.png");
     }
 }

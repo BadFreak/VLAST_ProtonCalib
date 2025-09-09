@@ -1,0 +1,21 @@
+BasedOnStyle: LLVM
+IndentWidth: 4            # Tab 显示宽度，可设为 2、4、8
+#UseTab: Always            # 让 clang-format 使用 Tab
+ColumnLimit: 120          # 每行的最大字符数，超过换行
+
+# 开括号(开圆括号、开尖括号、开方括号)后的对齐: Align, DontAlign, AlwaysBreak(总是在开括号后换行)
+# AlignAfterOpenBracket:	AlwaysBreak
+
+# 连续赋值时，对齐所有等号
+# AlignConsecutiveAssignments:	true
+
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortCaseLabelsOnASingleLine: true
+
+BraceWrapping:
+  AfterControlStatement: true
+  AfterFunction: false
+  AfterEnum: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeElse: false
