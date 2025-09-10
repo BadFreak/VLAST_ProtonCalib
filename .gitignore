@@ -1,3 +1,4 @@
 MC/*.root
 build/*
 result/*.root
+*.root

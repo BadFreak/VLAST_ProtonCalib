@@ -42,13 +42,18 @@ static double LandauConvGausFunc(double *x, double *par) {
 class ProtonCalib {
   public:
     static const int nCry = 25;
+    bool IsHeFile(std::string filename);
     void ReadTreeAndSetBranches(std::string filename);
-    void ProtonMIPStat(std::string filename);
-    int GetPadID(int cellid);
+    void InitHist(std::string filename);
     bool IsLessHit(int hitStd, int hit);
+    void ProtonSelection(double fileweight);
+
+    void FitTH1F(TH1F *&h, TF1 *&f, bool isHeliumFile);
+    void SetHistStyle(TH1F *&h, TF1 *&f, bool isHeliumFile);
+    int GetPadID(int cellid);
+    int CalibFileWrite(std::string filename);
+
     TVector3 TrackGenFit(TVector3 pos, TVector3 mom, std::vector<TVector3> &trackPos);
-    void FitTH1F(TH1F *&h, TF1 *&f);
-    void SetHistStyle(TH1F *&h, TF1 *&f);
     TVector3 FindHitPoint(TVector3 pos, TVector3 mom, double zpos);
     bool IsInDetectorSur(TVector3 vec3);
     // track find and back incident
@@ -64,7 +69,11 @@ class ProtonCalib {
     TFile *inFile;
     TFile *outFile;
     TTree *inTree;
-
+    int eventSelection1 = 0;
+    int eventSelection2 = 0;
+    int eventSelection3 = 0;
+    int eventSelection4 = 0;
+    int eventSelection5 = 0;
     // 存储不同类型的变量
     std::map<std::string, float> floatBranches;               // 单值 float 类型分支s
     std::map<std::string, int> intBranches;                   // 单值 int 类型分支
@@ -88,7 +97,6 @@ class ProtonCalib {
     TGraph *grFrontSur;
     TGraph *grBackSur;
     TH1F *hTest;
-    static bool isHeliumFile;
 };
 
 #endif // _PROTONCALIB_H_
